@@ -170,8 +170,10 @@ fn perform_kwin_capture(
             let xrgb: Vec<u32> = match bytemuck::try_cast_vec(bytes) {
                 Ok(v) => v,
                 Err((_err, bytes)) => bytes
-                    .chunks_exact(4)
-                    .map(|c| u32::from_ne_bytes([c[0], c[1], c[2], c[3]]))
+                    .as_chunks::<4>()
+                    .0
+                    .iter()
+                    .map(|c| u32::from_ne_bytes(*c))
                     .collect(),
             };
             log_step("Capture", &format!("Total: {}ms ({}x{}, type={})", t0.elapsed().as_millis(), width, height, reply_type));
