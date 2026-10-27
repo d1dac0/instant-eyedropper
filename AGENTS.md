@@ -166,12 +166,23 @@ it revisited before done. The reasoning lives in the file, not the chat.
 ## GitHub identity
 
 All GitHub work runs under the account **d1dac0**: repo creation, issues,
-labels, PRs, and merges. The `gh` CLI and `git` remotes must point at it —
-if a command acts as another account, `gh auth switch`. In worktrees,
-scripts, and one-off commands carry it explicitly:
-`gh issue list -R d1dac0/instant-eyedropper`, `gh pr view N
--R d1dac0/instant-eyedropper` — don't rely on the working directory
-deciding which repo answers.
+labels, PRs, and merges.
+
+**Never run `gh auth switch` on this machine.** The active account is one
+machine-global setting; switching flips it under every other live session
+on the PC (that's how private repos 404 mid-task and work lands under the
+wrong identity). Pin the account per command instead — the `gh-d1dac0`
+wrapper from `~/.bashrc`, or the explicit form when a shell predates it:
+
+```bash
+gh-d1dac0 gh pr list -R d1dac0/instant-eyedropper
+GH_TOKEN="$(gh auth token --user d1dac0)" gh pr view N -R d1dac0/instant-eyedropper
+GH_TOKEN="$(gh auth token --user d1dac0)" git push
+```
+
+`gh auth token --user` is read-only, so nothing shared changes state. And
+keep carrying the repo explicitly (`-R d1dac0/instant-eyedropper`) — don't
+rely on the working directory deciding which repo answers.
 
 ## Shared memory across sessions
 
