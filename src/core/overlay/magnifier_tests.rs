@@ -13,12 +13,22 @@ fn test_ensure_odd() {
 use crate::core::capture::{PhysicalCanvas, ScreenCapture};
 use crate::core::config::Config;
 
+/// `from_single` carries the Unix WlOutput handle; Windows takes none.
+#[cfg(unix)]
+fn canvas_from_single(capture: ScreenCapture) -> PhysicalCanvas {
+    PhysicalCanvas::from_single(capture, None, (0, 0))
+}
+#[cfg(windows)]
+fn canvas_from_single(capture: ScreenCapture) -> PhysicalCanvas {
+    PhysicalCanvas::from_single(capture, (0, 0))
+}
+
 fn canvas_400() -> PhysicalCanvas {
-    PhysicalCanvas::from_single(
-        ScreenCapture { xrgb_buffer: vec![0x808080; 400 * 400], width: 400, height: 400 },
-        None,
-        (0, 0),
-    )
+    canvas_from_single(ScreenCapture {
+        xrgb_buffer: vec![0x808080; 400 * 400],
+        width: 400,
+        height: 400,
+    })
 }
 
 fn settle(mag: &mut Magnifier, config: &Config, canvas: &PhysicalCanvas, x: f64, y: f64,
