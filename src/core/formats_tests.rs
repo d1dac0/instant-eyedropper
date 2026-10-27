@@ -55,3 +55,16 @@ fn test_template_formatting() {
     assert_eq!(color.format("{rf}", 1), "1.0");
     assert_eq!(color.format("{rf}", 2), "1.00");
 }
+
+#[test]
+fn test_name_token() {
+    // Exact CSS color.
+    assert_eq!(Color::new(70, 130, 180).format("{name}", 2), "Steel Blue");
+    // Near-miss resolves to the same name.
+    assert_eq!(Color::new(71, 131, 181).format("{name}", 2), "Steel Blue");
+    // Composes with other tokens.
+    assert_eq!(
+        Color::new(0, 0, 0).format("{name} #{R}{G}{B}", 2),
+        "Black #000000"
+    );
+}

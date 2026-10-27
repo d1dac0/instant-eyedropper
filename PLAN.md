@@ -9,7 +9,7 @@ order unless a `bug` issue is open first.
 **Goal:** The overlay shows not just the code of the color under the
 cursor but human-readable context about it.
 
-- [ ] #4 Show the nearest named color for the picked color (`{name}`
+- [x] #5 Show the nearest named color for the picked color (`{name}`
       template token + default display template)
 
 ## On-request audits

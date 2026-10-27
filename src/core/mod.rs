@@ -4,6 +4,7 @@ pub mod clipboard;
 pub mod config;
 pub mod formats;
 pub mod metrics;
+pub mod names;
 pub mod overlay;
 pub mod text;
 pub mod terminal;
