@@ -14,13 +14,23 @@ fn app() -> OverlayApp {
     app_with_fill(0x808080)
 }
 
+/// `from_single` carries the Unix WlOutput handle; Windows takes none.
+#[cfg(unix)]
+fn canvas_from_single(capture: ScreenCapture) -> PhysicalCanvas {
+    PhysicalCanvas::from_single(capture, None, (0, 0))
+}
+#[cfg(windows)]
+fn canvas_from_single(capture: ScreenCapture) -> PhysicalCanvas {
+    PhysicalCanvas::from_single(capture, (0, 0))
+}
+
 fn app_with_fill(fill: u32) -> OverlayApp {
     let capture = ScreenCapture {
         xrgb_buffer: vec![fill; 100 * 100],
         width: 100,
         height: 100,
     };
-    let canvas = PhysicalCanvas::from_single(capture, None, (0, 0));
+    let canvas = canvas_from_single(capture);
     OverlayApp::new(
         canvas,
         Config::default(),

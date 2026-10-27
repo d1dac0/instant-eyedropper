@@ -704,6 +704,8 @@ pub fn capture_all_outputs() -> Result<PhysicalCanvas> {
 }
 
 // Tests live in capture_tests.rs (test mechanics out of the logic file).
-#[cfg(test)]
+// The suite exercises the Wayland transform kernel and the Unix `from_single`
+// signature — Windows has no counterpart to gate them against.
+#[cfg(all(test, unix))]
 #[path = "capture_tests.rs"]
 mod tests;
