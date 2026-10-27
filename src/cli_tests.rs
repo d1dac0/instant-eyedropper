@@ -2,6 +2,7 @@
 
 use super::*;
 use crate::core::capture::{MonitorTile, PhysicalCanvas, ScreenCapture};
+#[cfg(unix)]
 use wayland_client::protocol::wl_output::Transform;
 
 #[test]
@@ -58,12 +59,14 @@ fn canvas_scale2_at(pos: (i32, i32)) -> PhysicalCanvas {
     // 100×100 logical at scale 2.0 → 200×200 physical.
     PhysicalCanvas::build(vec![MonitorTile {
         capture: ScreenCapture { xrgb_buffer: vec![0; 200 * 200], width: 200, height: 200 },
+        #[cfg(unix)]
         output: None,
         name: String::new(),
         scale: 2.0,
         logical_pos: pos,
         logical_w: 100,
         logical_h: 100,
+        #[cfg(unix)]
         transform: Transform::Normal,
     }])
 }
