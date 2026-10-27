@@ -68,3 +68,8 @@ strip = true      # Automatically strip symbols from the binary
 
 [dev-dependencies]
 anyhow = "1.0.101"
+
+# ── Build-time ────────────────────────────────────────────────────
+# Embeds assets/ie-r.ico as resource 1 for the Windows tray icon.
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
