@@ -1,0 +1,17 @@
+# Labels the workflow relies on. Recreate in a new repo with:
+#   bash tools/bootstrap.sh
+- name: bug
+  color: d73a4a
+  description: Playtest or user-reported problem; fixed before any story
+- name: story
+  color: 0052cc
+  description: A unit of planned work from the current phase in PLAN.md
+- name: in-progress
+  color: fbca04
+  description: A session has claimed this issue; other sessions skip it
+- name: blocked-answer
+  color: d876e3
+  description: Waiting on someone outside the repo to answer
+- name: spike
+  color: 1d7673
+  description: Timeboxed investigation to pick between approaches
