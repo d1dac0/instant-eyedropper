@@ -11,6 +11,7 @@
 ///   {l}                 — Lightness % (0-100, HSL)
 ///   {v}                 — Value % (0-100, HSV)
 ///   {c},{m},{y},{k}     — CMYK % (0-100)
+///   {name}              — nearest CSS named color ("Steel Blue")
 ///
 /// All other characters pass through as-is.
 /// Generates a zero-padded string for values up to 999.
@@ -216,6 +217,8 @@ impl Color {
             .replace("{m_pad}", &format_padded(m as u16))
             .replace("{y_pad}", &format_padded(y as u16))
             .replace("{k_pad}", &format_padded(k as u16))
+            // Nearest named color (CSS palette, redmean distance)
+            .replace("{name}", crate::core::names::nearest_name(self.r, self.g, self.b))
     }
 }
 

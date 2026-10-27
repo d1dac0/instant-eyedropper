@@ -83,7 +83,8 @@ deck_separator = "{nl}" # separator between serial picks: "{nl}" for newline, or
 
 # Clipboard templates — what actually lands in your clipboard.
 # Tokens: {R},{G},{B} (hex), {rd},{gd},{bd} (decimal), {rf},{gf},{bf} (float),
-#         {h},{s},{l} (HSL), {h},{s},{v} (HSV), {c},{m},{y},{k} (CMYK), {long} (integer)
+#         {h},{s},{l} (HSL), {h},{s},{v} (HSV), {c},{m},{y},{k} (CMYK), {long} (integer),
+#         {name} (nearest CSS color name, e.g. "Steel Blue")
 [templates.copy]
 html    = "#{R}{G}{B}"
 hex     = "0x{R}{G}{B}"
@@ -101,7 +102,7 @@ long    = "{long}"
 # These don't affect what gets copied — only what you see in the magnifier.
 [templates.show]
 line_spacing = 1.5
-html    = "#{R}{G}{B}"
+html    = "{name}{nl}#{R}{G}{B}"
 hex     = "0x{R}{G}{B}"
 rgb     = "{rd}, {gd}, {bd}"
 float   = "{rf}{nl}{gf}{nl}{bf}"
