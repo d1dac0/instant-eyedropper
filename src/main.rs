@@ -1,3 +1,9 @@
+// GUI subsystem: the exe gets no console of its own. The daemon must not
+// live inside a console window — closing that console killed the daemon
+// (#14). CLI/probe invocations re-attach to the launching terminal in
+// main() below, before the first output.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use anyhow::Result;
 #[cfg(unix)]
 use calloop::{
@@ -650,6 +656,34 @@ fn check_and_kill_existing_instance() {
 /// Entry point into the matrix.
 /// Parse args → dispatch mode → launch platform event loop.
 fn main() -> Result<()> {
+    // 0. Parse arguments before any heavy initialization.
+    // Arg/usage errors exit 2 (POSIX-ish: 2 = invalid invocation).
+    // Parsed first: the console-attach decision below needs the mode, and
+    // parse_args itself prints nothing on success.
+    let parsed = cli::parse_args();
+
+    // Windows: the exe is GUI-subsystem (no console of its own). Any
+    // invocation that will print — everything except the daemon, including
+    // arg errors — attaches to the launching terminal's console here, so
+    // output reaches the window the user ran it from. Piped/redirected
+    // stdout arrives valid from the parent shell and skips the attach.
+    // The daemon NEVER attaches: an attach ties the process to that
+    // console's lifetime, and a console window closing must never kill
+    // the daemon (#14). Must run before the first stdout/stderr use —
+    // Rust std reads the std handles once, lazily, at first access.
+    #[cfg(windows)]
+    if !matches!(&parsed, Ok((Mode::Daemon, ..))) {
+        core::terminal::attach_parent_console();
+    }
+
+    let (mode, verbose, config_override) = match parsed {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("error: {e}");
+            std::process::exit(2);
+        }
+    };
+
     // Windows: enable ANSI escape sequences for BOTH stdout and stderr.
     // log_* writes to stderr; --help and probe values write to stdout.
     #[cfg(windows)]
@@ -677,16 +711,6 @@ fn main() -> Result<()> {
         let _ = std::io::stderr().flush();
         let _ = std::io::stdout().flush();
     }
-
-    // 0. Parse arguments before any heavy initialization.
-    // Arg/usage errors exit 2 (POSIX-ish: 2 = invalid invocation).
-    let (mode, verbose, config_override) = match cli::parse_args() {
-        Ok(m) => m,
-        Err(e) => {
-            eprintln!("error: {e}");
-            std::process::exit(2);
-        }
-    };
 
     // 0.1. --config PATH: validate file exists & is readable, then install
     // it as the single source of truth for every subsequent Config::load /

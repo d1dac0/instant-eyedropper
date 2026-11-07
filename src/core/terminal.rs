@@ -195,3 +195,70 @@ pub fn print_logo() {
     eprintln!("{}", eyedropper.trim_start_matches(['\n', '\r']).cyan().bold());
     eprintln!("\n{} {} {}", tag.bold(), "Instant Eyedropper Reborn".green().bold(), env!("CARGO_PKG_VERSION").gray());
 }
+
+/// Windows: re-seat this GUI-subsystem process onto the launching
+/// terminal's console, so probe/CLI modes print where the user ran them.
+/// No-op when stdout already points somewhere real — pipe, file, or an
+/// inherited console handle — since the parent shell provides those and
+/// output already flows. Also a no-op when there is no parent console to
+/// take over (e.g. double-clicked from Explorer). The daemon never calls
+/// this: an attach ties the process to that console's lifetime, and a
+/// console window closing must never kill the daemon (#14). Must run
+/// before the first stdout/stderr/stdin use — Rust std reads the std
+/// handles once, lazily, at first access.
+#[cfg(windows)]
+pub fn attach_parent_console() {
+    use windows_sys::Win32::Foundation::{
+        GENERIC_READ, GENERIC_WRITE, INVALID_HANDLE_VALUE,
+    };
+    use windows_sys::Win32::Storage::FileSystem::{
+        CreateFileW, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+    };
+    use windows_sys::Win32::System::Console::{
+        AttachConsole, GetStdHandle, SetStdHandle, ATTACH_PARENT_PROCESS, STD_ERROR_HANDLE,
+        STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+    };
+
+    fn wide(s: &str) -> Vec<u16> {
+        s.encode_utf16().chain(std::iter::once(0)).collect()
+    }
+
+    unsafe {
+        // A real stdout (pipe, file, inherited console) means the parent
+        // shell already wired the std handles — keep them.
+        let existing = GetStdHandle(STD_OUTPUT_HANDLE);
+        if !existing.is_null() && existing != INVALID_HANDLE_VALUE {
+            return;
+        }
+        // GUI-subsystem children get no std handles; adopt the parent's
+        // console. No parent console (double-click, detached start) → done.
+        if AttachConsole(ATTACH_PARENT_PROCESS) == 0 {
+            return;
+        }
+        let conout = CreateFileW(
+            wide("CONOUT$").as_ptr(),
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            std::ptr::null(),
+            OPEN_EXISTING,
+            0,
+            std::ptr::null_mut(),
+        );
+        if conout != INVALID_HANDLE_VALUE {
+            SetStdHandle(STD_OUTPUT_HANDLE, conout);
+            SetStdHandle(STD_ERROR_HANDLE, conout);
+        }
+        let conin = CreateFileW(
+            wide("CONIN$").as_ptr(),
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            std::ptr::null(),
+            OPEN_EXISTING,
+            0,
+            std::ptr::null_mut(),
+        );
+        if conin != INVALID_HANDLE_VALUE {
+            SetStdHandle(STD_INPUT_HANDLE, conin);
+        }
+    }
+}
